@@ -3,21 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Image Model - Smart Classifier</title>
+    <title>Teachable Machine Image Model</title>
     
-    <!-- นำเข้า Google Fonts และ Font Awesome -->
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- นำเข้า Google Fonts เพื่อความสวยงาม -->
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
     
     <style>
         * {
             box-sizing: border-box;
             font-family: 'Sarabun', sans-serif;
-            transition: all 0.3s ease;
         }
 
         body {
-            background-color: #f0f2f5;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -26,320 +24,157 @@
             padding: 20px;
         }
 
-        .container {
-            background: rgb(255, 255, 255);
-            width: 100%;
-            max-width: 500px;
-            border-radius: 24px;
-            box-shadow: 0 15px 45px rgba(0,0,0,0.06);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #2c3e50, #4ca1af);
-            color: white;
-            padding: 35px;
-            text-align: center;
-        }
-
-        .header h2 {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 700;
-            margin: 0;
-            font-size: 26px;
-            letter-spacing: -0.5px;
-        }
-
-        .header p {
-            margin: 10px 0 0;
-            font-weight: 300;
-            opacity: 0.9;
-            font-size: 15px;
-        }
-
-        .main-content {
+        .card {
+            background: white;
             padding: 30px;
-        }
-
-        #status-area {
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             text-align: center;
-            margin-bottom: 25px;
-            padding: 15px;
-            border-radius: 14px;
-            font-weight: 600;
-            background-color: #ffeaa7; 
-            color: #7f8c8d;
+            max-width: 450px;
+            width: 100%;
         }
 
-        #status-area.ready { background-color: #e0f2f1; color: #00897b; }
-        #status-area.running { background-color: #e3f2fd; color: #1565c0; }
-        #status-area.error { background-color: #ffebee; color: #b71c1c; }
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
 
-        .btn-control {
-            background-color: #2ecc71;
+        .btn-start {
+            background-color: #4CAF50;
             color: white;
             border: none;
-            padding: 16px 30px;
-            font-size: 17px;
+            padding: 12px 30px;
+            font-size: 16px;
             font-weight: 600;
-            border-radius: 50px;
+            border-radius: 25px;
             cursor: pointer;
-            width: 100%;
-            box-shadow: 0 5px 20px rgba(46, 204, 113, 0.25);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
             margin-bottom: 20px;
         }
 
-        .btn-control:hover {
-            background-color: #27ae60;
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(46, 204, 113, 0.35);
+        .btn-start:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
         }
 
-        .btn-control:disabled {
-            background-color: #bdc3c7;
-            color: white;
+        .btn-start:disabled {
+            background-color: #cccccc;
+            color: #666666;
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
         }
 
-        #webcam-wrapper {
-            position: relative;
-            margin: 25px 0;
-            width: 100%;
-            padding-top: 100%;
-            background-color: #eee;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
-            border: 5px solid #fff;
-        }
-
         #webcam-container {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
+            margin: 20px auto;
+            border: 4px solid #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            width: 200px;
+            height: 200px;
+            background-color: #eee;
             display: flex;
             justify-content: center;
             align-items: center;
         }
-        
-        #webcam-container canvas {
-            width: 100% !important;
-            height: 100% !important;
-            object-fit: cover;
-        }
 
         #label-container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+            margin-top: 20px;
+            text-align: left;
         }
 
-        .result-item {
+        .label-row {
             background: #f8f9fa;
-            border-radius: 12px;
-            padding: 15px;
-            border: 1px solid #edf2f7;
-        }
-
-        .result-meta {
+            padding: 10px 15px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            font-weight: 600;
-            font-size: 15px;
-            color: #34495e;
-        }
-
-        .result-bar-bg {
-            background-color: #e9ecef;
-            height: 10px;
-            border-radius: 10px;
-            overflow: hidden;
-            width: 100%;
-        }
-
-        .result-bar-fill {
-            background: linear-gradient(90deg, #4ca1af, #2c3e50);
-            height: 100%;
-            border-radius: 10px;
-            width: 0%;
-            transition: width 0.4s ease-in-out;
-        }
-
-        .footer {
-            padding: 15px;
-            text-align: center;
-            color: #95a5a6;
-            font-size: 13px;
+            font-weight: 500;
+            color: #444;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header">
-        <h2>Smart AI Classifier</h2>
-        <p>แยกแยะภาพอัตโนมัติด้วยระบบ Machine Learning</p>
+<div class="card">
+    <h2>Teachable Machine Image Model</h2>
+    <button type="button" class="btn-start" id="start-btn" onclick="init()">เปิดกล้องเริ่มต้นการทำงาน</button>
+    
+    <div id="webcam-container">
+        <!-- กล้องจะแสดงตรงนี้ -->
     </div>
-
-    <div class="main-content">
-        <div id="status-area">
-            <i class="fas fa-info-circle"></i> ระบบพร้อมโหลดโมเดล กรุณากดปุ่มด้านล่าง
-        </div>
-
-        <button type="button" class="btn-control" id="start-btn" onclick="init()">
-            <i class="fas fa-camera"></i> เปิดกล้องเริ่มทำงาน
-        </button>
-        
-        <div id="webcam-wrapper">
-            <div id="webcam-container">
-                <i class="fas fa-video-slash" style="font-size: 50px; color: #bdc3c7;"></i>
-            </div>
-        </div>
-
-        <div id="label-container">
-            <!-- แสดงผลหลอดจำลองรอไว้ก่อนเพื่อให้เห็น UI สวยงาม -->
-            <div class="result-item">
-                <div class="result-meta"><span class="class-name">dst11แบบมีไฟ</span><span class="class-prob">0%</span></div>
-                <div class="result-bar-bg"><div class="result-bar-fill" style="width: 0%"></div></div>
-            </div>
-            <div class="result-item">
-                <div class="result-meta"><span class="class-name">dst11แบบไม่มีไฟ</span><span class="class-prob">0%</span></div>
-                <div class="result-bar-bg"><div class="result-bar-fill" style="width: 0%"></div></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="footer">
-        © 2026 AI Services Ltd. All rights reserved.
+    <div id="label-container">
+        <!-- ผลลัพธ์จะแสดงตรงนี้ -->
     </div>
 </div>
 
-<!-- โหลด TensorFlow.js และ Teachable Machine โมดูลล่าสุด -->
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.18.0/dist/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.5/dist/teachablemachine-image.min.js"></script>
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
 
 <script type="text/javascript">
+    // ลิงก์โมเดลของคุณจากระบบ[cite: 1]
     const URL = "https://teachablemachine.withgoogle.com/models/ogbyTMLUO/";[cite: 1]
 
     let model, webcam, labelContainer, maxPredictions;
-    let isPlaying = false;
-    let predictInterval;
-    const statusArea = document.getElementById("status-area");
-    const startBtn = document.getElementById("start-btn");
+    let updateInterval;
 
     async function init() {
-        startBtn.disabled = true;
-        statusArea.style.backgroundColor = "#ffeaa7";
-        statusArea.style.color = "#7f8c8d";
-        statusArea.innerHTML = '<i class="fas fa-cog fa-spin"></i> กำลังดาวน์โหลดและติดตั้งโมเดล AI...';
+        // ปิดปุ่มกดเพื่อป้องกันการกดซ้ำ
+        document.getElementById("start-btn").disabled = true;
+        document.getElementById("start-btn").innerText = "กำลังโหลดโมเดล...";
 
-        try {
-            const modelURL = URL + "model.json";[cite: 1]
-            const metadataURL = URL + "metadata.json";[cite: 1]
+        const modelURL = URL + "model.json";[cite: 1]
+        const metadataURL = URL + "metadata.json";[cite: 1]
 
-            // โหลดโมเดล AI
-            model = await tmImage.load(modelURL, metadataURL);[cite: 1]
-            maxPredictions = model.getTotalClasses();[cite: 1]
+        // โหลดโมเดล
+        model = await tmImage.load(modelURL, metadataURL);[cite: 1]
+        maxPredictions = model.getTotalClasses();[cite: 1]
 
-            // เรียกเปิดกล้องเว็บแคม
-            webcam = new tmImage.Webcam(350, 350, true);[cite: 1]
-            await webcam.setup();[cite: 1]
-            await webcam.play();[cite: 1]
-            isPlaying = true;
+        // ตั้งค่ากล้องเว็บแคม
+        const flip = true;[cite: 1]
+        webcam = new tmImage.Webcam(200, 200, flip); // กว้าง, สูง, พลิกซ้ายขวา[cite: 1]
+        await webcam.setup();[cite: 1]
+        await webcam.play();[cite: 1]
 
-            // รันสตรีมภาพสดจากกล้องลงหน้าเว็บ
-            window.requestAnimationFrame(loop);
-
-            document.getElementById("webcam-container").innerHTML = "";
-            document.getElementById("webcam-container").appendChild(webcam.canvas);[cite: 1]
-            
-            // ล้างหน้าต่างผลลัพธ์เก่าเพื่อสร้างตามคลาสจริงในโมเดล
-            labelContainer = document.getElementById("label-container");[cite: 1]
-            labelContainer.innerHTML = "";
-            for (let i = 0; i < maxPredictions; i++) {[cite: 1]
-                const itemDiv = document.createElement("div");
-                itemDiv.className = "result-item";
-                itemDiv.innerHTML = `
-                    <div class="result-meta">
-                        <span class="class-name">...</span>
-                        <span class="class-prob">0%</span>
-                    </div>
-                    <div class="result-bar-bg">
-                        <div class="result-bar-fill"></div>
-                    </div>
-                `;
-                labelContainer.appendChild(itemDiv);[cite: 1]
-            }
-
-            statusArea.className = "running";
-            statusArea.innerHTML = '<i class="fas fa-sync fa-spin"></i> กำลังประมวลผล (ทำนายผลทุก 3 วิ)';
-            
-            startBtn.innerHTML = '<i class="fas fa-pause"></i> หยุดการทำนายผล';
-            startBtn.style.backgroundColor = "#e74c3c";
-            startBtn.onclick = togglePlay;
-            startBtn.disabled = false;
-
-            // ทำการวิเคราะห์ภาพทุก 3 วินาที
-            predictInterval = setInterval(async () => {
-                if(isPlaying) {
-                    await predict();[cite: 1]
-                }
-            }, 3000);
-
-        } catch (error) {
-            statusArea.className = "error";
-            statusArea.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ไม่สามารถเข้าถึงโมเดลหรือกล้องได้';
-            console.error(error);
-            alert("เกิดข้อผิดพลาด: โปรดตรวจเช็คการเชื่อมต่ออินเทอร์เน็ต และสิทธิ์การเข้าถึงกล้อง");
-            startBtn.disabled = false;
-            startBtn.innerHTML = '<i class="fas fa-camera"></i> ลองเปิดกล้องอีกครั้ง';
+        // แสดงผลกล้องในเว็บ
+        document.getElementById("webcam-container").innerHTML = "";
+        document.getElementById("webcam-container").appendChild(webcam.canvas);[cite: 1]
+        
+        // เตรียมพื้นที่แสดงผลป้ายกำกับ (Label)
+        labelContainer = document.getElementById("label-container");[cite: 1]
+        labelContainer.innerHTML = "";
+        for (let i = 0; i < maxPredictions; i++) {[cite: 1]
+            const div = document.createElement("div");
+            div.className = "label-row";
+            labelContainer.appendChild(div);[cite: 1]
         }
+
+        document.getElementById("start-btn").innerText = "ระบบกำลังทำงาน (ทุกๆ 3 วิ)";
+
+        // สั่งให้ดึงภาพจากกล้องและทำนายผลทุกๆ 3 วินาที (3000 มิลลิวินาที)
+        updateInterval = setInterval(async () => {
+            webcam.update(); // ดึงเฟรมภาพใหม่จากกล้อง[cite: 1]
+            await predict(); // เรียกฟังก์ชันทำนายผล[cite: 1]
+        }, 3000);
     }
 
-    function togglePlay() {
-        if (isPlaying) {
-            isPlaying = false;
-            statusArea.className = "ready";
-            statusArea.innerHTML = '<i class="fas fa-pause-circle"></i> หยุดทำนายผลชั่วคราว';
-            startBtn.innerHTML = '<i class="fas fa-play"></i> ทำนายต่อทุก 3 วิ';
-            startBtn.style.backgroundColor = "#3498db";
-        } else {
-            isPlaying = true;
-            statusArea.className = "running";
-            statusArea.innerHTML = '<i class="fas fa-sync fa-spin"></i> กำลังประมวลผล (ทำนายผลทุก 3 วิ)';
-            startBtn.innerHTML = '<i class="fas fa-pause"></i> หยุดการทำนายผล';
-            startBtn.style.backgroundColor = "#e74c3c";
-        }
-    }
-
-    function loop() {
-        if(webcam && webcam.canvas) {
-            webcam.update();[cite: 1]
-            window.requestAnimationFrame(loop);
-        }
-    }
-
+    // ฟังก์ชันทำนายผลภาพจากกล้อง
     async function predict() {[cite: 1]
-        if (!isPlaying || !model || !webcam) return;
-
         const prediction = await model.predict(webcam.canvas);[cite: 1]
         for (let i = 0; i < maxPredictions; i++) {[cite: 1]
-            const resultItem = labelContainer.childNodes[i];
-            if(!resultItem) continue;
-
+            // แยกชื่อคลาสและคะแนนความมั่นใจ
             const className = prediction[i].className;[cite: 1]
-            const probPercent = (prediction[i].probability * 100).toFixed(0) + "%";
-
-            resultItem.querySelector(".class-name").innerText = className;
-            resultItem.querySelector(".class-prob").innerText = probPercent;
-            resultItem.querySelector(".result-bar-fill").style.width = probPercent;
+            const probability = (prediction[i].probability * 100).toFixed(0) + "%"; // แสดงผลเป็น % เพื่อความสวยงาม
+            
+            // อัปเดตข้อมูลลงหน้าเว็บ
+            labelContainer.childNodes[i].innerHTML = `<span>${className}</span> <span>${probability}</span>`;
         }
     }
 </script>
