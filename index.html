@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Image Model - Smart Classifier</title>
     
-    <!-- นำเข้า Google Fonts และ Font Awesome สำหรับไอคอน -->
+    <!-- นำเข้า Google Fonts และ Font Awesome -->
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
@@ -67,9 +67,10 @@
             padding: 15px;
             border-radius: 14px;
             font-weight: 600;
+            background-color: #ffeaa7; 
+            color: #7f8c8d;
         }
 
-        #status-area.loading { background-color: #ffeaa7; color: #7f8c8d; }
         #status-area.ready { background-color: #e0f2f1; color: #00897b; }
         #status-area.running { background-color: #e3f2fd; color: #1565c0; }
         #status-area.error { background-color: #ffebee; color: #b71c1c; }
@@ -89,6 +90,7 @@
             justify-content: center;
             align-items: center;
             gap: 12px;
+            margin-bottom: 20px;
         }
 
         .btn-control:hover {
@@ -109,7 +111,7 @@
             position: relative;
             margin: 25px 0;
             width: 100%;
-            padding-top: 100%; /* 1:1 Aspect Ratio */
+            padding-top: 100%;
             background-color: #eee;
             border-radius: 20px;
             overflow: hidden;
@@ -166,8 +168,8 @@
             background: linear-gradient(90deg, #4ca1af, #2c3e50);
             height: 100%;
             border-radius: 10px;
-            width: 0%; /* Dynamic */
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 0%;
+            transition: width 0.4s ease-in-out;
         }
 
         .footer {
@@ -187,8 +189,8 @@
     </div>
 
     <div class="main-content">
-        <div id="status-area" class="loading">
-            <i class="fas fa-spinner fa-spin"></i> กดยืนยันเพื่อโหลดโมเดล...
+        <div id="status-area">
+            <i class="fas fa-info-circle"></i> ระบบพร้อมโหลดโมเดล กรุณากดปุ่มด้านล่าง
         </div>
 
         <button type="button" class="btn-control" id="start-btn" onclick="init()">
@@ -202,7 +204,15 @@
         </div>
 
         <div id="label-container">
-            <!-- ผลลัพธ์พร้อมหลอดความมั่นใจจะถูกเพิ่มตรงนี้ -->
+            <!-- แสดงผลหลอดจำลองรอไว้ก่อนเพื่อให้เห็น UI สวยงาม -->
+            <div class="result-item">
+                <div class="result-meta"><span class="class-name">dst11แบบมีไฟ</span><span class="class-prob">0%</span></div>
+                <div class="result-bar-bg"><div class="result-bar-fill" style="width: 0%"></div></div>
+            </div>
+            <div class="result-item">
+                <div class="result-meta"><span class="class-name">dst11แบบไม่มีไฟ</span><span class="class-prob">0%</span></div>
+                <div class="result-bar-bg"><div class="result-bar-fill" style="width: 0%"></div></div>
+            </div>
         </div>
     </div>
 
@@ -211,12 +221,11 @@
     </div>
 </div>
 
-<!-- เรียกใช้คลังสคริปต์ภายนอก -->
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+<!-- โหลด TensorFlow.js และ Teachable Machine โมดูลล่าสุด -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.18.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.5/dist/teachablemachine-image.min.js"></script>
 
 <script type="text/javascript">
-    // ลิงก์โมเดลของคุณ
     const URL = "https://teachablemachine.withgoogle.com/models/ogbyTMLUO/";[cite: 1]
 
     let model, webcam, labelContainer, maxPredictions;
@@ -227,32 +236,31 @@
 
     async function init() {
         startBtn.disabled = true;
-        statusArea.className = "loading";
-        statusArea.innerHTML = '<i class="fas fa-cog fa-spin"></i> กำลังโหลดโมเดล AI...';
+        statusArea.style.backgroundColor = "#ffeaa7";
+        statusArea.style.color = "#7f8c8d";
+        statusArea.innerHTML = '<i class="fas fa-cog fa-spin"></i> กำลังดาวน์โหลดและติดตั้งโมเดล AI...';
 
         try {
             const modelURL = URL + "model.json";[cite: 1]
             const metadataURL = URL + "metadata.json";[cite: 1]
 
-            // โหลดโมเดล
+            // โหลดโมเดล AI
             model = await tmImage.load(modelURL, metadataURL);[cite: 1]
             maxPredictions = model.getTotalClasses();[cite: 1]
 
-            // ตั้งค่าเว็บแคม
-            const flip = true;[cite: 1]
-            webcam = new tmImage.Webcam(400, 400, flip); // เพิ่มความละเอียดเพื่อความชัดเจน[cite: 1]
+            // เรียกเปิดกล้องเว็บแคม
+            webcam = new tmImage.Webcam(350, 350, true);[cite: 1]
             await webcam.setup();[cite: 1]
             await webcam.play();[cite: 1]
             isPlaying = true;
 
-            // รัน Loop แสดงผลต่อเนื่อง
+            // รันสตรีมภาพสดจากกล้องลงหน้าเว็บ
             window.requestAnimationFrame(loop);
 
-            // แสดงกล้อง
             document.getElementById("webcam-container").innerHTML = "";
             document.getElementById("webcam-container").appendChild(webcam.canvas);[cite: 1]
             
-            // เตรียมพื้นที่แสดงผลป้ายกำกับ
+            // ล้างหน้าต่างผลลัพธ์เก่าเพื่อสร้างตามคลาสจริงในโมเดล
             labelContainer = document.getElementById("label-container");[cite: 1]
             labelContainer.innerHTML = "";
             for (let i = 0; i < maxPredictions; i++) {[cite: 1]
@@ -264,21 +272,21 @@
                         <span class="class-prob">0%</span>
                     </div>
                     <div class="result-bar-bg">
-                        <div class="result-bar-fill" style="width: 0%"></div>
+                        <div class="result-bar-fill"></div>
                     </div>
                 `;
                 labelContainer.appendChild(itemDiv);[cite: 1]
             }
 
-            statusArea.className = "ready";
-            statusArea.innerHTML = '<i class="fas fa-check-circle"></i> ระบบกล้องพร้อมใช้งาน';
-            startBtn.innerHTML = '<i class="fas fa-pause"></i> หยุดการทำงานชั่วคราว';
+            statusArea.className = "running";
+            statusArea.innerHTML = '<i class="fas fa-sync fa-spin"></i> กำลังประมวลผล (ทำนายผลทุก 3 วิ)';
+            
+            startBtn.innerHTML = '<i class="fas fa-pause"></i> หยุดการทำนายผล';
             startBtn.style.backgroundColor = "#e74c3c";
-            startBtn.style.boxShadow = "0 5px 20px rgba(231, 76, 60, 0.25)";
             startBtn.onclick = togglePlay;
             startBtn.disabled = false;
 
-            // ตั้งเวลาทำการวิเคราะห์ (Predict) ทุกๆ 3 วินาที (3000 มิลลิวินาที)
+            // ทำการวิเคราะห์ภาพทุก 3 วินาที
             predictInterval = setInterval(async () => {
                 if(isPlaying) {
                     await predict();[cite: 1]
@@ -287,57 +295,50 @@
 
         } catch (error) {
             statusArea.className = "error";
-            statusArea.innerHTML = '<i class="fas fa-exclamation-triangle"></i> เปิดกล้องไม่ได้!';
+            statusArea.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ไม่สามารถเข้าถึงโมเดลหรือกล้องได้';
             console.error(error);
-            alert("ไม่สามารถเปิดกล้องได้: กรุณาอนุญาตสิทธิ์การเข้าถึงกล้องบนเบราว์เซอร์");
+            alert("เกิดข้อผิดพลาด: โปรดตรวจเช็คการเชื่อมต่ออินเทอร์เน็ต และสิทธิ์การเข้าถึงกล้อง");
             startBtn.disabled = false;
+            startBtn.innerHTML = '<i class="fas fa-camera"></i> ลองเปิดกล้องอีกครั้ง';
         }
     }
 
     function togglePlay() {
         if (isPlaying) {
-            webcam.stop();
             isPlaying = false;
             statusArea.className = "ready";
-            statusArea.innerHTML = '<i class="fas fa-hand-paper"></i> หยุดการทำงานแล้ว';
-            startBtn.innerHTML = '<i class="fas fa-play"></i> เริ่มการทำงานใหม่';
+            statusArea.innerHTML = '<i class="fas fa-pause-circle"></i> หยุดทำนายผลชั่วคราว';
+            startBtn.innerHTML = '<i class="fas fa-play"></i> ทำนายต่อทุก 3 วิ';
             startBtn.style.backgroundColor = "#3498db";
         } else {
-            webcam.play();
             isPlaying = true;
             statusArea.className = "running";
-            statusArea.innerHTML = '<i class="fas fa-sync fa-spin"></i> กำลังทำงาน (ทำนายทุก 3 วิ)';
-            startBtn.innerHTML = '<i class="fas fa-pause"></i> หยุดการทำงานชั่วคราว';
+            statusArea.innerHTML = '<i class="fas fa-sync fa-spin"></i> กำลังประมวลผล (ทำนายผลทุก 3 วิ)';
+            startBtn.innerHTML = '<i class="fas fa-pause"></i> หยุดการทำนายผล';
             startBtn.style.backgroundColor = "#e74c3c";
-            window.requestAnimationFrame(loop);
         }
     }
 
     function loop() {
-        if(isPlaying) {
-            webcam.update(); // อัปเดตเฟรมภาพต่อเนื่องเพื่อให้ภาพเคลื่อนไหวไม่ค้าง[cite: 1]
+        if(webcam && webcam.canvas) {
+            webcam.update();[cite: 1]
             window.requestAnimationFrame(loop);
         }
     }
 
     async function predict() {[cite: 1]
-        if (!isPlaying) return;
-
-        statusArea.className = "running";
-        statusArea.innerHTML = '<i class="fas fa-sync fa-spin"></i> กำลังทำงาน (ทำนายทุก 3 วิ)';
+        if (!isPlaying || !model || !webcam) return;
 
         const prediction = await model.predict(webcam.canvas);[cite: 1]
-        
         for (let i = 0; i < maxPredictions; i++) {[cite: 1]
             const resultItem = labelContainer.childNodes[i];
+            if(!resultItem) continue;
+
             const className = prediction[i].className;[cite: 1]
             const probPercent = (prediction[i].probability * 100).toFixed(0) + "%";
 
-            // อัปเดตชื่อและเปอร์เซ็นต์
             resultItem.querySelector(".class-name").innerText = className;
             resultItem.querySelector(".class-prob").innerText = probPercent;
-
-            // อัปเดตความยาวหลอด (Progress Bar) พร้อมเอฟเฟกต์ smooth
             resultItem.querySelector(".result-bar-fill").style.width = probPercent;
         }
     }
